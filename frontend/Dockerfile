@@ -1,10 +1,12 @@
-# Build React app
-FROM node:18-alpine AS build
+# Stage 1 — Build React
+FROM node:18-alpine as build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-# Only build React, do NOT serve from this container
-CMD ["echo", "React build complete"]
+# Stage 2 — Serve with NGINX
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
