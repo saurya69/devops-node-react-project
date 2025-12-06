@@ -11,7 +11,7 @@ jobs:
 
     steps:
       # -----------------------
-      # 1. CHECKOUT REPOSITORY
+      # 1. CHECKOUT CODE
       # -----------------------
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -26,13 +26,16 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # -----------------------
-      # 3. BUILD DOCKER IMAGES
+      # 3. BUILD IMAGES
       # -----------------------
       - name: Build Backend Image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-backend:latest ./backend
 
       - name: Build Frontend Image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-frontend:latest ./frontend
+
+      - name: Build Nginx Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-nginx:latest ./nginx
 
       # -----------------------
       # 4. PUSH IMAGES TO DOCKER HUB
@@ -43,8 +46,11 @@ jobs:
       - name: Push Frontend Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/devops-frontend:latest
 
+      - name: Push Nginx Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/devops-nginx:latest
+
       # -----------------------
-      # 5. TRIGGER DEPLOYMENT ON UBUNTU SERVER (REQUIRED)
+      # 5. DEPLOY ON EC2 USING SSH
       # -----------------------
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
@@ -53,11 +59,11 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "🔄 Pulling latest images..."
+            echo "🔄 Updating images on EC2..."
             cd ~/devops-node-react-project
             docker-compose pull
             
-            echo "🚀 Restarting containers..."
+            echo "🚀 Restarting services..."
             docker-compose up -d --remove-orphans
-
-            echo "🎉 Deployment completed successfully!"
+            
+            echo "🎉 Deployment complete!"
