@@ -1,21 +1,22 @@
-version: "3.8"
-
 services:
   backend:
-    build: ./backend
+    image: sauryadev/devops-backend
     container_name: backend
+    restart: always
     ports:
       - "5000:5000"
 
   frontend:
-    build: ./frontend
+    image: sauryadev/devops-frontend
     container_name: frontend
+    restart: always
     depends_on:
       - backend
 
   nginx:
-    build: ./frontend
+    image: nginx:latest
     container_name: nginx
+    restart: always
     ports:
       - "80:80"
     depends_on:
